@@ -132,13 +132,16 @@ license that can be found in the LICENSE file.
 			{{end}} };
 			go.exit = goExit;
 			let mod, inst;
+			console.log("loading file");
 			await WebAssembly.instantiateStreaming(fetch("{{.WASMFile}}"), go.importObject).then((result) => {
 				mod = result.module;
 				inst = result.instance;
 			}).catch((err) => {
 				console.error(err);
 			});
+			console.log("starting go.run");
 			await go.run(inst);
+			console.log("done with go.run");
 			document.getElementById("doneButton").disabled = false;
 		})();
 	</script>
