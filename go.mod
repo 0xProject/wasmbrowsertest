@@ -1,4 +1,4 @@
-module github.com/agnivade/wasmbrowsertest
+module github.com/0xProject/wasmbrowsertest
 
 go 1.12
 
