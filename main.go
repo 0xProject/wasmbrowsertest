@@ -232,11 +232,23 @@ func handleEvent(ctx context.Context, ev interface{}, logger *log.Logger) {
 			fmt.Printf("%s:%d:%d %s\n", details.URL, details.LineNumber, details.ColumnNumber, details.Text)
 			if details.Exception != nil {
 				fmt.Printf("%s\n", details.Exception.Description)
+				if strings.Contains(details.Exception.Description, "Error: Go program has already exited") {
+					// Note(albrow): This can be a result of an apparent race
+					// condition, and we are not sure of the exact cause. It
+					// should be okay to continue with the tests. We don't need
+					// to cancel the context or call logger.Fatal.
+					logger.Println("possible uncaught exception (if the tests passed you can usually ignore this)")
+					break
+				}
 			}
+			// For any other uncaught exception, cancel the context and call
+			// logger.Fatal to exit with a non-zero status code (which will fail
+			// the tests).
 			err := chromedp.Cancel(ctx)
 			if err != nil {
 				logger.Printf("error in cancelling context: %v\n", err)
 			}
+			logger.Fatal("unexpected uncaught exception")
 		}
 	case *target.EventTargetCrashed:
 		fmt.Printf("target crashed: status: %s, error code:%d\n", ev.Status, ev.ErrorCode)
